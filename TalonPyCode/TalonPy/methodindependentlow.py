@@ -259,3 +259,19 @@ class MethodIndependent_low(object):
             self._stage=1
             self._search_antennas=0 # No search antennas
             self._nBPs=36
+
+    ######### apply ACO's sector choice from external input
+    def choose_tx_sector(
+            self,
+            ae_gains                                       # antenna elements characteristics
+        ):
+
+        maxae=min(self._max_active_antennas, len(ae_gains['amplitude']))
+        ordered_antenna_elements_ACO=np.argsort(ae_gains['amplitude'])[::-1]
+        ACO_active_antennas=np.argmax(np.cumsum(ae_gains['amplitude'][ordered_antenna_elements_ACO][0:maxae])/np.sqrt(np.arange(1, maxae+1)))+1 # Campute next number of active antennas
+        ACO_active_antennas=max(ACO_active_antennas,self._min_active_antennas) # apply minimum
+
+        ae_gains['ACO_active_Y_ndcs']=ordered_antenna_elements_ACO[0:ACO_active_antennas] # ordered indices
+        ae_gains['ACO_active_Y']=ae_gains['Y'][ae_gains['ACO_active_Y_ndcs']] # true indices
+
+        return(ae_gains)
